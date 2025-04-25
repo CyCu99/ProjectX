@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoBudżet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-car"></i> AutoBudżet</h1>
+            <button id="theme-toggle" class="theme-btn" aria-label="Zmień motyw">
+                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun" style="display: none;"></i>
+            </button>
+        </div>
+        
+        <div class="section">
+            <h2><i class="fas fa-plus-circle"></i> Dodaj wydatek</h2>
+            <form id="expense-form">
+                <div class="form-group">
+                    <label for="category"><i class="fas fa-tags"></i> Kategoria</label>
+                    <select id="category" required>
+                        <option value="">Wybierz kategorię</option>
+                        <option value="paliwo"><i class="fas fa-gas-pump"></i> Paliwo</option>
+                        <option value="myjnia">Myjnia</option>
+                        <option value="ubezpieczenie">Ubezpieczenie</option>
+                        <option value="naprawa">Naprawa</option>
+                        <option value="inne">Inne</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="type"><i class="fas fa-info-circle"></i> Szczegóły</label>
+                    <input type="text" id="type" placeholder="np. stacja BP" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount"><i class="fas fa-money-bill-wave"></i> Kwota (zł)</label>
+                    <input type="number" id="amount" step="0.01" min="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date"><i class="far fa-calendar-alt"></i> Data</label>
+                    <input type="date" id="date" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i> Dodaj wydatek
+                </button>
+                <div id="form-message" class="form-message"></div>
+            </form>
+
+            <div class="budget-container">
+                <h3><i class="fas fa-wallet"></i> Limit miesięczny</h3>
+                <div class="budget-controls">
+                    <input type="number" id="monthly-limit" placeholder="Ustaw limit (zł)" step="50" min="0">
+                    <button id="set-limit-btn" class="action-btn">
+                        <i class="fas fa-check"></i> Zapisz
+                    </button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="budget-progress"></div>
+                    <div class="progress-text" id="budget-text">Nie ustawiono limitu</div>
+                </div>
+                <div class="limit-warning" id="limit-warning"></div>
+            </div>
+
+            <h2><i class="fas fa-list"></i> Wydatki</h2>
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="filter-category"><i class="fas fa-filter"></i> Kategoria</label>
+                    <select id="filter-category">
+                        <option value="">Wszystkie</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-month"><i class="far fa-calendar"></i> Miesiąc</label>
+                    <input type="month" id="filter-month">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="filter-search"><i class="fas fa-search"></i> Szukaj</label>
+                    <input type="text" id="filter-search" placeholder="Wpisz frazę...">
+                </div>
+                
+                <button id="reset-filters" class="action-btn">
+                    <i class="fas fa-sync-alt"></i> Wyczyść
+                </button>
+            </div>
+            
+            <div class="expense-counter" id="expense-counter"></div>
+            <ul id="expense-list" class="expense-list"></ul>
+
+            <div class="summary-container">
+                <h2><i class="fas fa-chart-pie"></i> Podsumowanie</h2>
+                <div id="summary">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total">0</span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average">0</span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max">0</span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count">0</span></p>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="export-btn" class="action-btn">
+                    <i class="fas fa-file-export"></i> Eksportuj CSV
+                </button>
+                <button id="reset-btn" class="action-btn danger">
+                    <i class="fas fa-trash-alt"></i> Resetuj dane
+                </button>
+            </div>
+
+            <h2><i class="fas fa-chart-bar"></i> Wykres wydatków</h2>
+            <div class="chart-container">
+                <canvas id="expense-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-tools"></i> Narzędzia samochodowe</h2>
+            
+            <div class="tool-box">
+                <h3><i class="fas fa-gas-pump"></i> Kalkulator spalania</h3>
+                <form id="fuel-form">
+                    <div class="form-group">
+                        <label for="distance"><i class="fas fa-road"></i> Przebieg (km)</label>
+                        <input type="number" id="distance" step="0.1" min="0.1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fuel-used"><i class="fas fa-oil-can"></i> Paliwo (l)</label>
+                        <input type="number" id="fuel-used" step="0.1" min="0.1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fuel-price"><i class="fas fa-tag"></i> Cena za litr (zł)</label>
+                        <input type="number" id="fuel-price" step="0.01" min="0.01">
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-calculator"></i> Oblicz
+                    </button>
+                </form>
+                <div id="fuel-result" class="result-box">
+                    <p><i class="fas fa-tachometer-alt"></i> Spalanie: <span id="consumption">-</span> l/100km</p>
+                    <p><i class="fas fa-money-bill-wave"></i> Koszt: <span id="cost-per-km">-</span> zł/km</p>
+                </div>
+            </div>
+
+            <div class="tool-box">
+                <h3><i class="far fa-bell"></i> Przypomnienia</h3>
+                <form id="reminder-form">
+                    <div class="form-group">
+                        <label for="reminder-type"><i class="fas fa-tag"></i> Typ</label>
+                        <select id="reminder-type" required>
+                            <option value="">Wybierz typ</option>
+                            <option value="przegląd">Przegląd techniczny</option>
+                            <option value="olej">Wymiana oleju</option>
+                            <option value="ubezpieczenie">Ubezpieczenie</option>
+                            <option value="inne">Inne</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reminder-date"><i class="far fa-calendar-alt"></i> Data</label>
+                        <input type="date" id="reminder-date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reminder-notes"><i class="far fa-sticky-note"></i> Notatki</label>
+                        <input type="text" id="reminder-notes" placeholder="Dodaj notatkę...">
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="far fa-save"></i> Dodaj przypomnienie
+                    </button>
+                </form>
+                <ul id="reminder-list" class="reminder-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
