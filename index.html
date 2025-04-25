@@ -1,190 +1,614 @@
 <!DOCTYPE html>
 <html lang="pl" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AutoBudżet</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-car"></i> AutoBudżet</h1>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <div class="wrapper">
+        <div class="header" id="header-section">
+          <div class="header-left">
             <button id="theme-toggle" class="theme-btn" aria-label="Zmień motyw">
+              <div class="theme-option dark">
                 <i class="fas fa-moon"></i>
-                <i class="fas fa-sun" style="display: none;"></i>
+                <span>Ciemny</span>
+              </div>
+              <div class="theme-option light">
+                <i class="fas fa-sun"></i>
+                <span>Jasny</span>
+              </div>
             </button>
+          </div>
+          <div class="header-center">
+            <img src="assets/logo.png" alt="AutoBudżet" class="logo">
+          </div>
+          <div class="header-right"></div>
         </div>
-        
-        <div class="section">
-            <h2><i class="fas fa-plus-circle"></i> Dodaj wydatek</h2>
-            <form id="expense-form">
-                <div class="form-group">
-                    <label for="category"><i class="fas fa-tags"></i> Kategoria</label>
-                    <select id="category" required>
-                        <option value="">Wybierz kategorię</option>
-                        <option value="paliwo"><i class="fas fa-gas-pump"></i> Paliwo</option>
-                        <option value="myjnia">Myjnia</option>
-                        <option value="ubezpieczenie">Ubezpieczenie</option>
-                        <option value="naprawa">Naprawa</option>
-                        <option value="inne">Inne</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="type"><i class="fas fa-info-circle"></i> Szczegóły</label>
-                    <input type="text" id="type" placeholder="np. stacja BP" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="amount"><i class="fas fa-money-bill-wave"></i> Kwota (zł)</label>
-                    <input type="number" id="amount" step="0.01" min="0.01" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="date"><i class="far fa-calendar-alt"></i> Data</label>
-                    <input type="date" id="date" required>
-                </div>
-                
-                <button type="submit" class="submit-btn">
-                    <i class="fas fa-save"></i> Dodaj wydatek
-                </button>
-                <div id="form-message" class="form-message"></div>
-            </form>
 
-            <div class="budget-container">
-                <h3><i class="fas fa-wallet"></i> Limit miesięczny</h3>
-                <div class="budget-controls">
-                    <input type="number" id="monthly-limit" placeholder="Ustaw limit (zł)" step="50" min="0">
-                    <button id="set-limit-btn" class="action-btn">
-                        <i class="fas fa-check"></i> Zapisz
-                    </button>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" id="budget-progress"></div>
-                    <div class="progress-text" id="budget-text">Nie ustawiono limitu</div>
-                </div>
-                <div class="limit-warning" id="limit-warning"></div>
+        <div class="section" id="expense-section">
+          <h2><i class="fas fa-plus-circle"></i> Dodaj wydatek</h2>
+          <form id="expense-form">
+            <div class="form-group">
+              <label for="category"
+                ><i class="fas fa-tags"></i> Kategoria</label
+              >
+              <select id="category" required>
+                <option value="">Wybierz kategorię</option>
+                <option value="paliwo">
+                  <i class="fas fa-gas-pump"></i> Paliwo
+                </option>
+                <option value="myjnia">Myjnia</option>
+                <option value="ubezpieczenie">Ubezpieczenie</option>
+                <option value="naprawa">Naprawa</option>
+                <option value="inne">Inne</option>
+              </select>
             </div>
 
-            <h2><i class="fas fa-list"></i> Wydatki</h2>
-            <div class="filter-controls">
-                <div class="filter-group">
-                    <label for="filter-category"><i class="fas fa-filter"></i> Kategoria</label>
-                    <select id="filter-category">
-                        <option value="">Wszystkie</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="filter-month"><i class="far fa-calendar"></i> Miesiąc</label>
-                    <input type="month" id="filter-month">
-                </div>
-                
-                <div class="filter-group">
-                    <label for="filter-search"><i class="fas fa-search"></i> Szukaj</label>
-                    <input type="text" id="filter-search" placeholder="Wpisz frazę...">
-                </div>
-                
-                <button id="reset-filters" class="action-btn">
-                    <i class="fas fa-sync-alt"></i> Wyczyść
-                </button>
+            <div class="form-group">
+              <label for="type"
+                ><i class="fas fa-info-circle"></i> Szczegóły</label
+              >
+              <input
+                type="text"
+                id="type"
+                placeholder="np. stacja BP"
+                required
+              />
             </div>
-            
-            <div class="expense-counter" id="expense-counter"></div>
-            <ul id="expense-list" class="expense-list"></ul>
 
-            <div class="summary-container">
-                <h2><i class="fas fa-chart-pie"></i> Podsumowanie</h2>
-                <div id="summary">
+            <div class="form-group">
+              <label for="amount"
+                ><i class="fas fa-money-bill-wave"></i> Kwota (zł)</label
+              >
+              <input
+                type="number"
+                id="amount"
+                step="0.01"
+                min="0.01"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="date"><i class="far fa-calendar-alt"></i> Data</label>
+              <input type="date" id="date" required />
+            </div>
+
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-save"></i> Dodaj wydatek
+            </button>
+            <div id="form-message" class="form-message"></div>
+          </form>
+
+          <div class="budget-container">
+            <h3><i class="fas fa-wallet"></i> Limit miesięczny</h3>
+            <div class="budget-controls">
+              <input
+                type="number"
+                id="monthly-limit"
+                placeholder="Ustaw limit (zł)"
+                step="50"
+                min="0"
+              />
+              <button id="set-limit-btn" class="action-btn">
+                <i class="fas fa-check"></i> Zapisz
+              </button>
+            </div>
+            <div class="progress-container">
+              <div class="progress-bar" id="budget-progress"></div>
+              <div class="progress-text" id="budget-text">
+                Nie ustawiono limitu
+              </div>
+            </div>
+            <div class="limit-warning" id="limit-warning"></div>
+          </div>
+
+          <h2><i class="fas fa-list"></i> Wydatki</h2>
+          <div class="filter-controls">
+            <div class="filter-group">
+              <label for="filter-category"
+                ><i class="fas fa-filter"></i> Kategoria</label
+              >
+              <select id="filter-category">
+                <option value="">Wszystkie</option>
+                <option value="paliwo">Paliwo</option>
+                <option value="myjnia">Myjnia</option>
+                <option value="ubezpieczenie">Ubezpieczenie</option>
+                <option value="naprawa">Naprawa</option>
+                <option value="inne">Inne</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="filter-month"
+                ><i class="far fa-calendar"></i> Miesiąc</label
+              >
+              <select id="filter-month">
+                <option value="">Wszystkie miesiące</option>
+                <option value="01">Styczeń</option>
+                <option value="02">Luty</option>
+                <option value="03">Marzec</option>
+                <option value="04">Kwiecień</option>
+                <option value="05">Maj</option>
+                <option value="06">Czerwiec</option>
+                <option value="07">Lipiec</option>
+                <option value="08">Sierpień</option>
+                <option value="09">Wrzesień</option>
+                <option value="10">Październik</option>
+                <option value="11">Listopad</option>
+                <option value="12">Grudzień</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="filter-search"
+                ><i class="fas fa-search"></i> Szukaj</label
+              >
+              <input
+                type="text"
+                id="filter-search"
+                placeholder="Wpisz frazę..."
+              />
+            </div>
+
+            <button id="reset-filters" class="action-btn">
+              <i class="fas fa-sync-alt"></i> Wyczyść
+            </button>
+          </div>
+
+          <div class="expense-counter" id="expense-counter"></div>
+          <ul id="expense-list" class="expense-list"></ul>
+
+          <div class="pagination">
+            <button id="prev-page" class="pagination-btn" disabled>
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <span id="page-info">Strona 1</span>
+            <button id="next-page" class="pagination-btn" disabled>
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="section" id="summary-section">
+          <div class="summary-container">
+            <h2><i class="fas fa-chart-pie"></i> Podsumowanie</h2>
+            <div class="accordion" id="summary-accordion">
+
+              <div class="accordion-item">
+                <button class="accordion-header active">
+                  <i class="fas fa-chart-line"></i> Wszystkie wydatki
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content active">
+                  <div id="overall-summary">
                     <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total">0</span> zł</p>
                     <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average">0</span> zł</p>
                     <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max">0</span> zł</p>
                     <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count">0</span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="expense-chart" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-all">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
                 </div>
-            </div>
+              </div>
 
-            <div class="action-buttons">
-                <button id="export-btn" class="action-btn">
-                    <i class="fas fa-file-export"></i> Eksportuj CSV
-                </button>
-                <button id="reset-btn" class="action-btn danger">
-                    <i class="fas fa-trash-alt"></i> Resetuj dane
-                </button>
-            </div>
+              <hr class="accordion-divider" />
 
-            <h2><i class="fas fa-chart-bar"></i> Wykres wydatków</h2>
-            <div class="chart-container">
-                <canvas id="expense-chart" width="400" height="200"></canvas>
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-0"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div>
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-0"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-0"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-0"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-0"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-0" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-0">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-1"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div>
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-1"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-1"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-1"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-1"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-1" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-1">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-2"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div>
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-2"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-2"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-2"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-2"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-2" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-2">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-3"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-3"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-3"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-3"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-3"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-3" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-3">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-4"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-4"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-4"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-4"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-4"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-4" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-4">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-5"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-5"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-5"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-5"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-5"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-5" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-5">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-6"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-6"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-6"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-6"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-6"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-6" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-6">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-7"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-7"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-7"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-7"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-7"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-7" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-7">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-8"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-8"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-8"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-8"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-8"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-8" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-8">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-9"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-9"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-9"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-9"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-9"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-9" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-9">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-10"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-10"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-10"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-10"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-10"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-10" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-10">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <button class="accordion-header">
+                  <i class="fas fa-calendar"></i>
+                  <span id="month-11"></span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                  <div class="monthly-details">
+                    <p><i class="fas fa-coins"></i> <strong>Suma:</strong> <span id="total-11"></span> zł</p>
+                    <p><i class="fas fa-calculator"></i> <strong>Średnia:</strong> <span id="average-11"></span> zł</p>
+                    <p><i class="fas fa-arrow-up"></i> <strong>Największy:</strong> <span id="max-11"></span> zł</p>
+                    <p><i class="fas fa-list-ol"></i> <strong>Ilość:</strong> <span id="count-11"></span></p>
+                  </div>
+                  <div class="chart-container">
+                    <p class="no-chart-data">Brak danych do wyświetlenia wykresu</p>
+                    <canvas id="month-chart-11" width="400" height="200"></canvas>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="action-btn" id="export-11">
+                      <i class="fas fa-file-export"></i> Eksportuj CSV
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
 
-        <div class="section">
-            <h2><i class="fas fa-tools"></i> Narzędzia samochodowe</h2>
-            
-            <div class="tool-box">
-                <h3><i class="fas fa-gas-pump"></i> Kalkulator spalania</h3>
-                <form id="fuel-form">
-                    <div class="form-group">
-                        <label for="distance"><i class="fas fa-road"></i> Przebieg (km)</label>
-                        <input type="number" id="distance" step="0.1" min="0.1" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="fuel-used"><i class="fas fa-oil-can"></i> Paliwo (l)</label>
-                        <input type="number" id="fuel-used" step="0.1" min="0.1" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="fuel-price"><i class="fas fa-tag"></i> Cena za litr (zł)</label>
-                        <input type="number" id="fuel-price" step="0.01" min="0.01">
-                    </div>
-                    
-                    <button type="submit" class="submit-btn">
-                        <i class="fas fa-calculator"></i> Oblicz
-                    </button>
-                </form>
-                <div id="fuel-result" class="result-box">
-                    <p><i class="fas fa-tachometer-alt"></i> Spalanie: <span id="consumption">-</span> l/100km</p>
-                    <p><i class="fas fa-money-bill-wave"></i> Koszt: <span id="cost-per-km">-</span> zł/km</p>
-                </div>
-            </div>
+        <div class="section" id="tool-section">
+          <h2><i class="fas fa-tools"></i> Narzędzia samochodowe</h2>
 
-            <div class="tool-box">
-                <h3><i class="far fa-bell"></i> Przypomnienia</h3>
-                <form id="reminder-form">
-                    <div class="form-group">
-                        <label for="reminder-type"><i class="fas fa-tag"></i> Typ</label>
-                        <select id="reminder-type" required>
-                            <option value="">Wybierz typ</option>
-                            <option value="przegląd">Przegląd techniczny</option>
-                            <option value="olej">Wymiana oleju</option>
-                            <option value="ubezpieczenie">Ubezpieczenie</option>
-                            <option value="inne">Inne</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="reminder-date"><i class="far fa-calendar-alt"></i> Data</label>
-                        <input type="date" id="reminder-date" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="reminder-notes"><i class="far fa-sticky-note"></i> Notatki</label>
-                        <input type="text" id="reminder-notes" placeholder="Dodaj notatkę...">
-                    </div>
-                    
-                    <button type="submit" class="submit-btn">
-                        <i class="far fa-save"></i> Dodaj przypomnienie
-                    </button>
-                </form>
-                <ul id="reminder-list" class="reminder-list"></ul>
+          <div class="tool-box">
+            <h3><i class="fas fa-gas-pump"></i> Kalkulator spalania</h3>
+            <form id="fuel-form">
+              <div class="form-group">
+                <label for="distance"
+                  ><i class="fas fa-road"></i> Przebieg (km)</label
+                >
+                <input
+                  type="number"
+                  id="distance"
+                  step="0.1"
+                  min="0.1"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="fuel-used"
+                  ><i class="fas fa-oil-can"></i> Paliwo (l)</label
+                >
+                <input
+                  type="number"
+                  id="fuel-used"
+                  step="0.1"
+                  min="0.1"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="fuel-price"
+                  ><i class="fas fa-tag"></i> Cena za litr (zł)</label
+                >
+                <input type="number" id="fuel-price" step="0.01" min="0.01" />
+              </div>
+
+              <button type="submit" class="submit-btn">
+                <i class="fas fa-calculator"></i> Oblicz
+              </button>
+            </form>
+            <div id="fuel-result" class="result-box">
+              <p>
+                <i class="fas fa-tachometer-alt"></i> Spalanie:
+                <span id="consumption">-</span> l/100km
+              </p>
+              <p>
+                <i class="fas fa-money-bill-wave"></i> Koszt:
+                <span id="cost-per-km">-</span> zł/km
+              </p>
             </div>
+          </div>
+
+          <div class="tool-box">
+            <h3><i class="far fa-bell"></i> Przypomnienia</h3>
+            <form id="reminder-form">
+              <div class="form-group">
+                <label for="reminder-title"
+                  ><i class="fas fa-tag"></i> Tytuł</label
+                >
+                <select id="reminder-title" required>
+                  <option value="">Wybierz tytuł</option>
+                  <option value="przegląd">Przegląd techniczny</option>
+                  <option value="olej">Wymiana oleju</option>
+                  <option value="ubezpieczenie">Ubezpieczenie</option>
+                  <option value="inne">Inne</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="reminder-date"
+                  ><i class="far fa-calendar-alt"></i> Data</label
+                >
+                <input type="date" id="reminder-date" required />
+              </div>
+
+              <div class="form-group">
+                <label for="reminder-description"
+                  ><i class="far fa-sticky-note"></i> Opis</label
+                >
+                <input
+                  type="text"
+                  id="reminder-description"
+                  placeholder="Dodaj opis..."
+                />
+              </div>
+
+              <button type="submit" class="submit-btn">
+                <i class="far fa-save"></i> Dodaj przypomnienie
+              </button>
+            </form>
+            <ul id="reminder-list" class="reminder-list"></ul>
+          </div>
         </div>
+      </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
-</body>
+  </body>
 </html>
