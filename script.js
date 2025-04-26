@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-            // Inicjalizacja aplikacji
             const DOM = {
                 expenseForm: document.getElementById("expense-form"),
                 expenseList: document.getElementById("expense-list"),
@@ -29,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 export11: document.getElementById("export-11"),
             };
 
-            // Pozycja powiadomienia
             const position = {
                 topRight: "top-right",
                 top: "top",
@@ -39,82 +37,52 @@ document.addEventListener("DOMContentLoaded", () => {
                 bottomLeft: "bottom-left",
             };
 
-            // Stan aplikacji
             const state = {
-                expenses: [],
-                reminders: [],
-                monthlyLimit: null,
+                expenses: JSON.parse(localStorage.getItem('expenses')) || [],
+                reminders: JSON.parse(localStorage.getItem('reminders')) || [],
+                monthlyLimit: JSON.parse(localStorage.getItem('monthlyLimit')) || null,
                 theme: localStorage.getItem("theme") || "light",
                 charts: {},
                 currentPage: 1,
                 itemsPerPage: 10,
             };
 
-            // Inicjalizacja
+            function saveData() {
+                localStorage.setItem('expenses', JSON.stringify(state.expenses));
+                localStorage.setItem('reminders', JSON.stringify(state.reminders));
+                localStorage.setItem('monthlyLimit', JSON.stringify(state.monthlyLimit));
+                console.log('Dane zapisane w localStorage.');
+            }
+
+            function loadData() {
+                state.expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+                state.reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+                state.monthlyLimit = JSON.parse(localStorage.getItem('monthlyLimit')) || null;
+                console.log('Dane załadowane z localStorage.');
+                renderAll();
+            }
+
+            function renderAll() {
+                console.log('Renderowanie danych:', state);
+                renderExpenses();
+                renderCharts();
+                updateBudgetProgress();
+                updateCounter(filterExpenses());
+                fillSummariesData();
+            }
+
             init();
 
             function init() {
-                loadJSONData().then(() => {
-                    applyTheme(state.theme);
-                    setupEventListeners();
-                    checkReminders();
-                    setupAccordion();
-                    renderAll();
-                });
-            }
-
-            async function loadJSONData() {
-                try {
-                    const response = await fetch('http://localhost:8000/get-data');
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const json = await response.json();
-
-                    // Załaduj dane do stanu aplikacji
-                    state.expenses = json.expenses || [];
-                    state.reminders = json.reminders || [];
-                    state.monthlyLimit = json.monthlyLimit || null;
-
-                    renderAll();
-                    renderReminders();
-                    console.log("Dane załadowane z serwera.");
-                } catch (error) {
-                    console.error("Błąd podczas ładowania danych:", error);
-                }
-            }
-
-            function saveDataToServer() {
-                const dataToSave = {
-                    expenses: state.expenses,
-                    reminders: state.reminders,
-                    monthlyLimit: state.monthlyLimit,
-                };
-
-                fetch('http://localhost:8000/save-data', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(dataToSave),
-                    })
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw new Error('Błąd podczas zapisywania danych na serwerze');
-                        }
-                        console.log('Dane zapisane na serwerze.');
-                    })
-                    .catch((error) => {
-                        console.error('Błąd zapisu danych:', error);
-                    });
-            }
-
-            function saveData() {
-                saveDataToServer();
+                loadData();
+                applyTheme(state.theme);
+                setupEventListeners();
+                checkReminders();
+                setupAccordion();
+                renderAll();
             }
 
             function setupEventListeners() {
-                // Formularze
                 DOM.expenseForm.addEventListener("submit", handleExpenseSubmit);
                 document
                     .getElementById("fuel-form")
@@ -123,23 +91,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     .getElementById("reminder-form")
                     .addEventListener("submit", handleReminderSubmit);
 
-                // Filtry
                 DOM.filterCategory.addEventListener("change", renderAll);
                 DOM.filterMonth.addEventListener("change", renderAll);
                 DOM.filterSearch.addEventListener("input", renderAll);
                 DOM.resetFiltersBtn.addEventListener("click", resetFilters);
 
-                // Przyciski akcji
                 DOM.setLimitBtn.addEventListener("click", setMonthlyLimit);
                 DOM.themeToggle.addEventListener("click", toggleTheme);
 
-                // Listy
                 DOM.expenseList.addEventListener("click", handleExpenseListClick);
                 document
                     .getElementById("reminder-list")
                     .addEventListener("click", handleReminderListClick);
 
-                // Eksportowanie
                 DOM.exportAll.addEventListener("click", () => exportToCSV(-1));
                 DOM.export0.addEventListener("click", () => exportToCSV(0));
                 DOM.export1.addEventListener("click", () => exportToCSV(1));
@@ -154,7 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 DOM.export10.addEventListener("click", () => exportToCSV(10));
                 DOM.export11.addEventListener("click", () => exportToCSV(11));
 
-                // Pagination
                 document.getElementById("prev-page").addEventListener("click", () => {
                     if (state.currentPage > 1) {
                         state.currentPage--;
@@ -173,7 +136,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            // ==================== FUNKCJE TEMATU ====================
             function toggleTheme() {
                 state.theme = state.theme === "light" ? "dark" : "light";
                 applyTheme(state.theme);
@@ -182,12 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             function applyTheme(theme) {
                 document.documentElement.setAttribute("data-theme", theme);
-
-                // Aktualizacja wykresu po zmianie motywu
                 renderCharts();
             }
 
-            // ==================== FUNKCJE WYDATKÓW ====================
             function handleExpenseSubmit(e) {
                 e.preventDefault();
 
@@ -197,13 +156,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const date = document.getElementById("date").value;
                 const formMessage = DOM.expenseForm.querySelector(".form-message");
 
-                // Walidacja
                 if (!category || !type || isNaN(amount) || amount <= 0 || !date) {
                     showMessage(formMessage, "Wypełnij wszystkie pola poprawnie!", "error");
                     return;
                 }
 
-                // Sprawdź czy wydatek jest z bieżącego miesiąca
                 const currentMonth = new Date().toISOString().slice(0, 7);
                 const expenseMonth = date.slice(0, 7);
 
@@ -263,24 +220,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     const li = document.createElement("li");
                     li.className = "expense-item";
                     li.innerHTML = `
-                <div class="expense-info">
-                    <span class="expense-date">${formatDate(
-                      expense.date
-                    )}</span>
-                    <span class="expense-category">${expense.category}</span>
-                    <span class="expense-type">${expense.type}</span>
-                </div>
-                <div class="expense-amount">
-                    ${expense.amount.toFixed(2)} zł
-                    <button class="delete-btn" data-id="${index}" aria-label="Usuń wydatek">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            `;
+        <div class="expense-info">
+            <span class="expense-date">${formatDate(
+              expense.date
+            )}</span>
+            <span class="expense-category">${expense.category}</span>
+            <span class="expense-type">${expense.type}</span>
+        </div>
+        <div class="expense-amount">
+            ${expense.amount.toFixed(2)} zł
+            <button class="delete-btn" data-id="${index}" aria-label="Usuń wydatek">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+      `;
                     DOM.expenseList.appendChild(li);
                 });
 
-                // Update pagination controls
                 const totalPages = Math.ceil(filteredExpenses.length / state.itemsPerPage);
                 document.getElementById("prev-page").disabled = state.currentPage === 1;
                 document.getElementById("next-page").disabled =
@@ -298,7 +254,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (confirm("Czy na pewno chcesz usunąć ten wydatek?")) {
                     state.expenses.splice(index, 1);
                     saveData();
-                    // Check if we need to go back a page after deletion
                     const totalPages = Math.ceil(
                         filterExpenses().length / state.itemsPerPage
                     );
@@ -315,7 +270,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            // ==================== LIMIT WYDATKÓW ====================
             function setMonthlyLimit() {
                 const newLimit = parseFloat(DOM.monthlyLimitInput.value);
 
@@ -360,7 +314,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 DOM.budgetProgress.style.setProperty("--progress", `${percentage}%`);
 
-                // Zmiana stylów w zależności od wykorzystania limitu
                 if (percentage >= 90) {
                     DOM.budgetProgress.classList.add("warning");
 
@@ -370,7 +323,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ).toFixed(2)} zł!`;
                         DOM.limitWarning.style.display = "block";
                         if (percentage < 110) {
-                            // Zapobiegaj spamowaniu powiadomień
                             showConfirmation(
                                 "Przekroczono miesięczny limit budżetu!",
                                 position.topRight,
@@ -403,7 +355,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     `Przekroczono o ${Math.abs(remaining).toFixed(2)} zł`;
             }
 
-            // ==================== NARZĘDZIA SAMOCHODOWE ====================
             function handleFuelCalc(e) {
                 e.preventDefault();
                 const distance = parseFloat(document.getElementById("distance").value);
@@ -455,22 +406,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 const list = document.getElementById("reminder-list");
                 list.innerHTML = "";
 
-                // Sort reminders by date (earliest first)
                 state.reminders
                     .sort((a, b) => new Date(a.date) - new Date(b.date))
                     .forEach((reminder, index) => {
                             const li = document.createElement("li");
                             const reminderDate = new Date(reminder.date);
                             const today = new Date();
-                            // Reset hours to compare just dates
                             today.setHours(0, 0, 0, 0);
                             reminderDate.setHours(0, 0, 0, 0);
 
-                            // Calculate days difference
                             const timeDiff = reminderDate - today;
                             const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
 
-                            // Format the time left text
                             let timeLeftText;
                             if (daysLeft === 0) {
                                 timeLeftText = "Dzisiaj";
@@ -510,41 +457,37 @@ document.addEventListener("DOMContentLoaded", () => {
                                 }
                             }
 
-                            // Set background color based on urgency
                             if (daysLeft >= 0) {
-                                // Only for future and today's reminders
                                 if (daysLeft <= 1) {
-                                    // 24 hours or less
-                                    li.style.backgroundColor = "rgba(231, 76, 60, 0.2)"; // Light red
+                                    li.style.backgroundColor = "rgba(231, 76, 60, 0.2)";
                                 } else if (daysLeft <= 7) {
-                                    // 7 days or less
-                                    li.style.backgroundColor = "rgba(241, 196, 15, 0.2)"; // Light yellow
+                                    li.style.backgroundColor = "rgba(241, 196, 15, 0.2)";
                                 }
                             }
 
                             li.className = "reminder-item";
                             li.innerHTML = `
-                      <div class="reminder-info">
-                         <span class="reminder-title bold">${
-                           reminder.title
-                         }</span>
-                          - 
-                         <span class="reminder-date italic">${formatDate(
-                           reminder.date
-                         )}</span>
-                          ${
-                            reminder.description
-                              ? `<p class="reminder-description">${reminder.description}</p>`
-                              : ""
-                          }
-                      </div>
-                     <div class="reminder-time-left">
-                         <span class="reminder-time-left-value">${timeLeftText}</span>
-                     </div>
-                      <button class="delete-btn" data-reminder-id="${index}" aria-label="Usuń przypomnienie">
-                          <i class="fas fa-trash-alt"></i>
-                      </button>
-                `;
+          <div class="reminder-info">
+             <span class="reminder-title bold">${
+               reminder.title
+             }</span>
+              - 
+             <span class="reminder-date italic">${formatDate(
+               reminder.date
+             )}</span>
+              ${
+                reminder.description
+                  ? `<p class="reminder-description">${reminder.description}</p>`
+                  : ""
+              }
+          </div>
+         <div class="reminder-time-left">
+             <span class="reminder-time-left-value">${timeLeftText}</span>
+         </div>
+          <button class="delete-btn" data-reminder-id="${index}" aria-label="Usuń przypomnienie">
+              <i class="fas fa-trash-alt"></i>
+          </button>
+        `;
         list.appendChild(li);
       });
   }
@@ -567,7 +510,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ==================== WYKRESY ====================
   function renderCharts() {
     const totals = {};
     state.expenses.forEach((exp) => {
@@ -683,16 +625,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ==================== FUNKCJE POMOCNICZE ====================
-  function renderAll() {
-    const filteredExpenses = filterExpenses();
-    renderExpenses();
-    renderCharts();
-    updateBudgetProgress();
-    updateCounter(filteredExpenses);
-    fillSummariesData();
-  }
-
   function updateCounter(filteredExpenses) {
     DOM.expenseCounter.textContent = `Wyświetlono ${
       (state.currentPage - 1) * state.itemsPerPage + 1
@@ -708,7 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
     DOM.filterCategory.value = "";
     DOM.filterMonth.value = "";
     DOM.filterSearch.value = "";
-    state.currentPage = 1; // Reset to first page when filters are cleared
+    state.currentPage = 1;
     renderAll();
   }
 
@@ -748,9 +680,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const headers = ["Data", "Kategoria", "Typ", "Kwota"];
 
-    // Get current date
     const currentDate = new Date();
-    // Get target date by subtracting months
     let targetMonth = currentDate.getMonth() - month;
     let targetYear = currentDate.getFullYear();
 
@@ -810,7 +740,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Remove expired reminders (from yesterday or earlier)
     state.reminders = state.reminders.filter((reminder) => {
       const reminderDate = new Date(reminder.date);
       const reminderDay = new Date(
@@ -821,7 +750,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return reminderDay.getTime() >= today.getTime();
     });
 
-    // Check for today's reminders
     const todayReminders = state.reminders.filter((reminder) => {
       const reminderDate = new Date(reminder.date);
       const reminderDay = new Date(
@@ -832,7 +760,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return reminderDay.getTime() === today.getTime();
     });
 
-    // Show notifications for today's reminders
     todayReminders.forEach((reminder) => {
       showConfirmation(
         `Dzisiaj masz zaplanowane: ${reminder.title}!`,
@@ -842,7 +769,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
 
-    // Save changes and update display
     saveData();
     renderReminders();
   }
@@ -894,13 +820,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const content = header.nextElementSibling;
         const isActive = header.classList.contains("active");
 
-        // Close all other accordion items
         headers.forEach((h) => {
           h.classList.remove("active");
           h.nextElementSibling.classList.remove("active");
         });
 
-        // Toggle current item
         if (!isActive) {
           header.classList.add("active");
           content.classList.add("active");
