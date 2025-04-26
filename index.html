@@ -1,22 +1,21 @@
 <!DOCTYPE html>
 <html lang="pl" data-theme="light">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AutoBudżet</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
-  </head>
-  <body>
+</head>
+
+<body>
     <div class="wrapper">
         <div class="header" id="header-section">
-          <div class="header-left">
-            <button id="theme-toggle" class="theme-btn" aria-label="Zmień motyw">
+            <div class="header-left">
+                <button id="theme-toggle" class="theme-btn" aria-label="Zmień motyw">
               <div class="theme-option dark">
                 <i class="fas fa-moon"></i>
                 <span>Ciemny</span>
@@ -26,19 +25,22 @@
                 <span>Jasny</span>
               </div>
             </button>
-          </div>
-          <div class="header-center">
-            <img src="assets/logo.png" alt="AutoBudżet" class="logo">
-          </div>
-          <div class="header-right"></div>
+            </div>
+            <div class="header-center">
+                <img src="assets/logo.png" alt="AutoBudżet" class="logo">
+            </div>
+            <div class="header-right">
+                <button id="reset-button" class="reset-btn" aria-label="Resetuj dane">
+              <i class="fas fa-trash-alt"></i> Reset
+            </button>
+            </div>
         </div>
 
         <div class="section" id="expense-section">
-          <h2><i class="fas fa-plus-circle"></i> Dodaj wydatek</h2>
-          <form id="expense-form">
-            <div class="form-group">
-              <label for="category"
-                ><i class="fas fa-tags"></i> Kategoria</label
+            <h2><i class="fas fa-plus-circle"></i> Dodaj wydatek</h2>
+            <form id="expense-form">
+                <div class="form-group">
+                    <label for="category"><i class="fas fa-tags"></i> Kategoria</label
               >
               <select id="category" required>
                 <option value="">Wybierz kategorię</option>
@@ -79,43 +81,36 @@
 
             <div class="form-group">
               <label for="date"><i class="far fa-calendar-alt"></i> Data</label>
-              <input type="date" id="date" required />
-            </div>
+                    <input type="date" id="date" required />
+                </div>
 
-            <button type="submit" class="submit-btn">
+                <button type="submit" class="submit-btn">
               <i class="fas fa-save"></i> Dodaj wydatek
             </button>
-            <div id="form-message" class="form-message"></div>
-          </form>
+                <div id="form-message" class="form-message"></div>
+            </form>
 
-          <div class="budget-container">
-            <h3><i class="fas fa-wallet"></i> Limit miesięczny</h3>
-            <div class="budget-controls">
-              <input
-                type="number"
-                id="monthly-limit"
-                placeholder="Ustaw limit (zł)"
-                step="50"
-                min="0"
-              />
-              <button id="set-limit-btn" class="action-btn">
+            <div class="budget-container">
+                <h3><i class="fas fa-wallet"></i> Limit miesięczny</h3>
+                <div class="budget-controls">
+                    <input type="number" id="monthly-limit" placeholder="Ustaw limit (zł)" step="50" min="0" />
+                    <button id="set-limit-btn" class="action-btn">
                 <i class="fas fa-check"></i> Zapisz
               </button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="budget-progress"></div>
+                    <div class="progress-text" id="budget-text">
+                        Nie ustawiono limitu
+                    </div>
+                </div>
+                <div class="limit-warning" id="limit-warning"></div>
             </div>
-            <div class="progress-container">
-              <div class="progress-bar" id="budget-progress"></div>
-              <div class="progress-text" id="budget-text">
-                Nie ustawiono limitu
-              </div>
-            </div>
-            <div class="limit-warning" id="limit-warning"></div>
-          </div>
 
-          <h2><i class="fas fa-list"></i> Wydatki</h2>
-          <div class="filter-controls">
-            <div class="filter-group">
-              <label for="filter-category"
-                ><i class="fas fa-filter"></i> Kategoria</label
+            <h2><i class="fas fa-list"></i> Wydatki</h2>
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="filter-category"><i class="fas fa-filter"></i> Kategoria</label
               >
               <select id="filter-category">
                 <option value="">Wszystkie</option>
