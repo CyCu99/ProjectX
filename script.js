@@ -1,555 +1,509 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Inicjalizacja aplikacji
-  const DOM = {
-    expenseForm: document.getElementById("expense-form"),
-    expenseList: document.getElementById("expense-list"),
-    filterCategory: document.getElementById("filter-category"),
-    filterMonth: document.getElementById("filter-month"),
-    filterSearch: document.getElementById("filter-search"),
-    resetFiltersBtn: document.getElementById("reset-filters"),
-    expenseCounter: document.getElementById("expense-counter"),
-    limitWarning: document.getElementById("limit-warning"),
-    themeToggle: document.getElementById("theme-toggle"),
-    monthlyLimitInput: document.getElementById("monthly-limit"),
-    setLimitBtn: document.getElementById("set-limit-btn"),
-    budgetProgress: document.getElementById("budget-progress"),
-    budgetText: document.getElementById("budget-text"),
-    exportAll: document.getElementById("export-all"),
-    export0: document.getElementById("export-0"),
-    export1: document.getElementById("export-1"),
-    export2: document.getElementById("export-2"),
-    export3: document.getElementById("export-3"),
-    export4: document.getElementById("export-4"),
-    export5: document.getElementById("export-5"),
-    export6: document.getElementById("export-6"),
-    export7: document.getElementById("export-7"),
-    export8: document.getElementById("export-8"),
-    export9: document.getElementById("export-9"),
-    export10: document.getElementById("export-10"),
-    export11: document.getElementById("export-11"),
-  };
+            const DOM = {
+                expenseForm: document.getElementById("expense-form"),
+                expenseList: document.getElementById("expense-list"),
+                filterCategory: document.getElementById("filter-category"),
+                filterMonth: document.getElementById("filter-month"),
+                filterSearch: document.getElementById("filter-search"),
+                resetFiltersBtn: document.getElementById("reset-filters"),
+                expenseCounter: document.getElementById("expense-counter"),
+                limitWarning: document.getElementById("limit-warning"),
+                themeToggle: document.getElementById("theme-toggle"),
+                monthlyLimitInput: document.getElementById("monthly-limit"),
+                setLimitBtn: document.getElementById("set-limit-btn"),
+                budgetProgress: document.getElementById("budget-progress"),
+                budgetText: document.getElementById("budget-text"),
+                exportAll: document.getElementById("export-all"),
+                export0: document.getElementById("export-0"),
+                export1: document.getElementById("export-1"),
+                export2: document.getElementById("export-2"),
+                export3: document.getElementById("export-3"),
+                export4: document.getElementById("export-4"),
+                export5: document.getElementById("export-5"),
+                export6: document.getElementById("export-6"),
+                export7: document.getElementById("export-7"),
+                export8: document.getElementById("export-8"),
+                export9: document.getElementById("export-9"),
+                export10: document.getElementById("export-10"),
+                export11: document.getElementById("export-11"),
+                resetButton: document.getElementById("reset-button"),
+            };
 
-  // Pozycja powiadomienia
-  const position = {
-    topRight: "top-right",
-    top: "top",
-    topLeft: "top-left",
-    bottomRight: "bottom-right",
-    bottom: "bottom",
-    bottomLeft: "bottom-left",
-  };
+            const position = {
+                topRight: "top-right",
+                top: "top",
+                topLeft: "top-left",
+                bottomRight: "bottom-right",
+                bottom: "bottom",
+                bottomLeft: "bottom-left",
+            };
 
-  // Stan aplikacji
-  const state = {
-    expenses: [],
-    reminders: [],
-    monthlyLimit: null,
-    theme: localStorage.getItem("theme") || "light",
-    charts: {},
-    currentPage: 1,
-    itemsPerPage: 10,
-  };
+            const state = {
+                expenses: JSON.parse(localStorage.getItem('expenses')) || [],
+                reminders: JSON.parse(localStorage.getItem('reminders')) || [],
+                monthlyLimit: JSON.parse(localStorage.getItem('monthlyLimit')) || null,
+                theme: localStorage.getItem("theme") || "light",
+                charts: {},
+                currentPage: 1,
+                itemsPerPage: 10,
+            };
 
-  // Inicjalizacja
-  init();
+            function saveData() {
+                localStorage.setItem('expenses', JSON.stringify(state.expenses));
+                localStorage.setItem('reminders', JSON.stringify(state.reminders));
+                localStorage.setItem('monthlyLimit', JSON.stringify(state.monthlyLimit));
+                console.log('Dane zapisane w localStorage.');
+            }
 
-  function init() {
-    loadJSONData().then(() => {
-      applyTheme(state.theme);
-      setupEventListeners();
-      checkReminders();
-      setupAccordion();
-      renderAll();
-    });
-  }
+            function loadData() {
+                state.expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+                state.reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+                state.monthlyLimit = JSON.parse(localStorage.getItem('monthlyLimit')) || null;
+                console.log('Dane załadowane z localStorage.');
+                renderAll();
+            }
 
-  async function loadJSONData() {
-    try {
-      const response = await fetch("data.json");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const json = await response.json();
+            function renderAll() {
+                console.log('Renderowanie danych:', state);
+                renderExpenses();
+                renderCharts();
+                updateBudgetProgress();
+                updateCounter(filterExpenses());
+                fillSummariesData();
+            }
 
-      // Load expenses
-      if (json.expenses) {
-        json.expenses.forEach((item) => {
-          if (!item.category || !item.type || !item.amount || !item.date) {
-            throw new Error("Invalid expense data structure");
-          }
+            init();
 
-          state.expenses.push({
-            category: item.category,
-            type: item.type,
-            amount: parseFloat(item.amount),
-            date: item.date,
-          });
-        });
-      }
+            function init() {
+                loadData();
+                applyTheme(state.theme);
+                setupEventListeners();
+                checkReminders();
+                setupAccordion();
+                renderAll();
+            }
 
-      // Load reminders
-      if (json.reminders) {
-        state.reminders = json.reminders
-          .map((reminder) => ({
-            title: reminder.title,
-            date: reminder.date,
-            description: reminder.description || "",
-          }))
-          .sort((a, b) => new Date(a.date) - new Date(b.date));
-      }
+            function setupEventListeners() {
+                DOM.expenseForm.addEventListener("submit", handleExpenseSubmit);
+                document
+                    .getElementById("fuel-form")
+                    .addEventListener("submit", handleFuelCalc);
+                document
+                    .getElementById("reminder-form")
+                    .addEventListener("submit", handleReminderSubmit);
 
-      // Load monthly limit
-      if (json.monthlyLimit) {
-        state.monthlyLimit = parseFloat(json.monthlyLimit);
-      }
+                DOM.filterCategory.addEventListener("change", renderAll);
+                DOM.filterMonth.addEventListener("change", renderAll);
+                DOM.filterSearch.addEventListener("input", renderAll);
+                DOM.resetFiltersBtn.addEventListener("click", resetFilters);
 
-      saveData();
-      renderAll();
-      renderReminders();
-      console.log("Successfully loaded JSON data");
-    } catch (error) {
-      console.error("Error loading JSON data:", error);
-      showMessage(
-        document.querySelector(".form-message"),
-        `Error loading data: ${error.message}`,
-        "error"
-      );
-    }
-  }
+                DOM.setLimitBtn.addEventListener("click", setMonthlyLimit);
+                DOM.themeToggle.addEventListener("click", toggleTheme);
 
-  function setupEventListeners() {
-    // Formularze
-    DOM.expenseForm.addEventListener("submit", handleExpenseSubmit);
-    document
-      .getElementById("fuel-form")
-      .addEventListener("submit", handleFuelCalc);
-    document
-      .getElementById("reminder-form")
-      .addEventListener("submit", handleReminderSubmit);
+                DOM.expenseList.addEventListener("click", handleExpenseListClick);
+                document
+                    .getElementById("reminder-list")
+                    .addEventListener("click", handleReminderListClick);
 
-    // Filtry
-    DOM.filterCategory.addEventListener("change", renderAll);
-    DOM.filterMonth.addEventListener("change", renderAll);
-    DOM.filterSearch.addEventListener("input", renderAll);
-    DOM.resetFiltersBtn.addEventListener("click", resetFilters);
+                DOM.exportAll.addEventListener("click", () => exportToCSV(-1));
+                DOM.export0.addEventListener("click", () => exportToCSV(0));
+                DOM.export1.addEventListener("click", () => exportToCSV(1));
+                DOM.export2.addEventListener("click", () => exportToCSV(2));
+                DOM.export3.addEventListener("click", () => exportToCSV(3));
+                DOM.export4.addEventListener("click", () => exportToCSV(4));
+                DOM.export5.addEventListener("click", () => exportToCSV(5));
+                DOM.export6.addEventListener("click", () => exportToCSV(6));
+                DOM.export7.addEventListener("click", () => exportToCSV(7));
+                DOM.export8.addEventListener("click", () => exportToCSV(8));
+                DOM.export9.addEventListener("click", () => exportToCSV(9));
+                DOM.export10.addEventListener("click", () => exportToCSV(10));
+                DOM.export11.addEventListener("click", () => exportToCSV(11));
 
-    // Przyciski akcji
-    DOM.setLimitBtn.addEventListener("click", setMonthlyLimit);
-    DOM.themeToggle.addEventListener("click", toggleTheme);
+                document.getElementById("prev-page").addEventListener("click", () => {
+                    if (state.currentPage > 1) {
+                        state.currentPage--;
+                        renderAll();
+                    }
+                });
 
-    // Listy
-    DOM.expenseList.addEventListener("click", handleExpenseListClick);
-    document
-      .getElementById("reminder-list")
-      .addEventListener("click", handleReminderListClick);
+                document.getElementById("next-page").addEventListener("click", () => {
+                    const totalPages = Math.ceil(
+                        filterExpenses().length / state.itemsPerPage
+                    );
+                    if (state.currentPage < totalPages) {
+                        state.currentPage++;
+                        renderAll();
+                    }
+                });
 
-    // Eksportowanie
-    DOM.exportAll.addEventListener("click", () => exportToCSV(-1));
-    DOM.export0.addEventListener("click", () => exportToCSV(0));
-    DOM.export1.addEventListener("click", () => exportToCSV(1));
-    DOM.export2.addEventListener("click", () => exportToCSV(2));
-    DOM.export3.addEventListener("click", () => exportToCSV(3));
-    DOM.export4.addEventListener("click", () => exportToCSV(4));
-    DOM.export5.addEventListener("click", () => exportToCSV(5));
-    DOM.export6.addEventListener("click", () => exportToCSV(6));
-    DOM.export7.addEventListener("click", () => exportToCSV(7));
-    DOM.export8.addEventListener("click", () => exportToCSV(8));
-    DOM.export9.addEventListener("click", () => exportToCSV(9));
-    DOM.export10.addEventListener("click", () => exportToCSV(10));
-    DOM.export11.addEventListener("click", () => exportToCSV(11));
+                if (DOM.resetButton) {
+                    DOM.resetButton.addEventListener("click", () => {
+                        const confirmation = confirm("Czy na pewno chcesz zresetować wszystkie dane (oprócz motywu)?");
+                        if (confirmation) {
+                            const currentTheme = localStorage.getItem("theme");
+                            localStorage.clear();
+                            if (currentTheme) {
+                                localStorage.setItem("theme", currentTheme);
+                            }
+                            alert("Dane zostały zresetowane (motyw został zachowany)!");
+                            location.reload();
+                        }
+                    });
+                }
+            }
 
-    // Pagination
-    document.getElementById("prev-page").addEventListener("click", () => {
-      if (state.currentPage > 1) {
-        state.currentPage--;
-        renderAll();
-      }
-    });
+            function toggleTheme() {
+                state.theme = state.theme === "light" ? "dark" : "light";
+                applyTheme(state.theme);
+                localStorage.setItem("theme", state.theme);
+            }
 
-    document.getElementById("next-page").addEventListener("click", () => {
-      const totalPages = Math.ceil(
-        filterExpenses().length / state.itemsPerPage
-      );
-      if (state.currentPage < totalPages) {
-        state.currentPage++;
-        renderAll();
-      }
-    });
-  }
+            function applyTheme(theme) {
+                document.documentElement.setAttribute("data-theme", theme);
+                renderCharts();
+            }
 
-  // ==================== FUNKCJE TEMATU ====================
-  function toggleTheme() {
-    state.theme = state.theme === "light" ? "dark" : "light";
-    applyTheme(state.theme);
-    localStorage.setItem("theme", state.theme);
-  }
+            function handleExpenseSubmit(e) {
+                e.preventDefault();
 
-  function applyTheme(theme) {
-    document.documentElement.setAttribute("data-theme", theme);
+                const category = document.getElementById("category").value.trim();
+                const type = document.getElementById("type").value.trim();
+                const amount = parseFloat(document.getElementById("amount").value);
+                const date = document.getElementById("date").value;
+                const formMessage = DOM.expenseForm.querySelector(".form-message");
 
-    // Aktualizacja wykresu po zmianie motywu
-    renderCharts();
-  }
+                if (!category || !type || isNaN(amount) || amount <= 0 || !date) {
+                    showMessage(formMessage, "Wypełnij wszystkie pola poprawnie!", "error");
+                    return;
+                }
 
-  // ==================== FUNKCJE WYDATKÓW ====================
-  function handleExpenseSubmit(e) {
-    e.preventDefault();
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                const expenseMonth = date.slice(0, 7);
 
-    const category = document.getElementById("category").value.trim();
-    const type = document.getElementById("type").value.trim();
-    const amount = parseFloat(document.getElementById("amount").value);
-    const date = document.getElementById("date").value;
-    const formMessage = DOM.expenseForm.querySelector(".form-message");
+                if (currentMonth !== expenseMonth && state.monthlyLimit) {
+                    if (!confirm("Dodajesz wydatek z innego miesiąca. Czy na pewno?")) return;
+                }
 
-    // Walidacja
-    if (!category || !type || isNaN(amount) || amount <= 0 || !date) {
-      showMessage(formMessage, "Wypełnij wszystkie pola poprawnie!", "error");
-      return;
-    }
+                try {
+                    state.expenses.push({ category, type, amount, date });
+                    saveData();
+                    renderAll();
+                    showConfirmation(
+                        `Dodano wydatek: ${type} - ${amount.toFixed(2)} zł`,
+                        position.topRight,
+                        false,
+                        true
+                    );
+                    DOM.expenseForm.reset();
+                    state.currentPage = 1;
+                } catch (error) {
+                    console.error("Błąd:", error);
+                    showMessage(formMessage, "Wystąpił błąd podczas dodawania", "error");
+                }
+            }
 
-    // Sprawdź czy wydatek jest z bieżącego miesiąca
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const expenseMonth = date.slice(0, 7);
+            function filterExpenses() {
+                const category = DOM.filterCategory.value;
+                const month = DOM.filterMonth.value;
+                const search = DOM.filterSearch.value.toLowerCase();
 
-    if (currentMonth !== expenseMonth && state.monthlyLimit) {
-      if (!confirm("Dodajesz wydatek z innego miesiąca. Czy na pewno?")) return;
-    }
+                return state.expenses.filter((expense) => {
+                    const matchesCategory = !category || expense.category === category;
+                    const matchesMonth = !month || expense.date.split("-")[1] === month;
+                    const matchesSearch = !search ||
+                        expense.type.toLowerCase().includes(search) ||
+                        expense.category.toLowerCase().includes(search);
 
-    try {
-      state.expenses.push({ category, type, amount, date });
-      saveData();
-      renderAll();
-      showConfirmation(
-        `Dodano wydatek: ${type} - ${amount.toFixed(2)} zł`,
-        position.topRight,
-        false,
-        true
-      );
-      DOM.expenseForm.reset();
-      state.currentPage = 1;
-    } catch (error) {
-      console.error("Błąd:", error);
-      showMessage(formMessage, "Wystąpił błąd podczas dodawania", "error");
-    }
-  }
+                    return matchesCategory && matchesMonth && matchesSearch;
+                });
+            }
 
-  function filterExpenses() {
-    const category = DOM.filterCategory.value;
-    const month = DOM.filterMonth.value;
-    const search = DOM.filterSearch.value.toLowerCase();
+            function renderExpenses() {
+                const filteredExpenses = filterExpenses();
+                const startIndex = (state.currentPage - 1) * state.itemsPerPage;
+                const endIndex = startIndex + state.itemsPerPage;
+                const paginatedExpenses = filteredExpenses.slice(startIndex, endIndex);
 
-    return state.expenses.filter((expense) => {
-      const matchesCategory = !category || expense.category === category;
-      const matchesMonth = !month || expense.date.split("-")[1] === month;
-      const matchesSearch =
-        !search ||
-        expense.type.toLowerCase().includes(search) ||
-        expense.category.toLowerCase().includes(search);
+                DOM.expenseList.innerHTML = "";
 
-      return matchesCategory && matchesMonth && matchesSearch;
-    });
-  }
+                if (paginatedExpenses.length === 0) {
+                    DOM.expenseList.innerHTML =
+                        '<li class="no-expenses">Brak wydatków do wyświetlenia</li>';
+                    return;
+                }
 
-  function renderExpenses() {
-    const filteredExpenses = filterExpenses();
-    const startIndex = (state.currentPage - 1) * state.itemsPerPage;
-    const endIndex = startIndex + state.itemsPerPage;
-    const paginatedExpenses = filteredExpenses.slice(startIndex, endIndex);
+                paginatedExpenses.forEach((expense, index) => {
+                    const li = document.createElement("li");
+                    li.className = "expense-item";
+                    li.innerHTML = `
+        <div class="expense-info">
+            <span class="expense-date">${formatDate(
+              expense.date
+            )}</span>
+            <span class="expense-category">${expense.category}</span>
+            <span class="expense-type">${expense.type}</span>
+        </div>
+        <div class="expense-amount">
+            ${expense.amount.toFixed(2)} zł
+            <button class="delete-btn" data-id="${index}" aria-label="Usuń wydatek">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+      `;
+                    DOM.expenseList.appendChild(li);
+                });
 
-    DOM.expenseList.innerHTML = "";
-
-    if (paginatedExpenses.length === 0) {
-      DOM.expenseList.innerHTML =
-        '<li class="no-expenses">Brak wydatków do wyświetlenia</li>';
-      return;
-    }
-
-    paginatedExpenses.forEach((expense, index) => {
-      const li = document.createElement("li");
-      li.className = "expense-item";
-      li.innerHTML = `
-                <div class="expense-info">
-                    <span class="expense-date">${formatDate(
-                      expense.date
-                    )}</span>
-                    <span class="expense-category">${expense.category}</span>
-                    <span class="expense-type">${expense.type}</span>
-                </div>
-                <div class="expense-amount">
-                    ${expense.amount.toFixed(2)} zł
-                    <button class="delete-btn" data-id="${index}" aria-label="Usuń wydatek">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            `;
-      DOM.expenseList.appendChild(li);
-    });
-
-    // Update pagination controls
-    const totalPages = Math.ceil(filteredExpenses.length / state.itemsPerPage);
-    document.getElementById("prev-page").disabled = state.currentPage === 1;
-    document.getElementById("next-page").disabled =
-      state.currentPage === totalPages || totalPages === 0;
-    document.getElementById("page-info").textContent = `Strona ${
+                const totalPages = Math.ceil(filteredExpenses.length / state.itemsPerPage);
+                document.getElementById("prev-page").disabled = state.currentPage === 1;
+                document.getElementById("next-page").disabled =
+                    state.currentPage === totalPages || totalPages === 0;
+                document.getElementById("page-info").textContent = `Strona ${
       state.currentPage
     } z ${totalPages || 1}`;
-  }
+            }
 
-  function handleExpenseListClick(e) {
-    const deleteBtn = e.target.closest(".delete-btn");
-    if (!deleteBtn) return;
+            function handleExpenseListClick(e) {
+                const deleteBtn = e.target.closest(".delete-btn");
+                if (!deleteBtn) return;
 
-    const index = deleteBtn.getAttribute("data-id");
-    if (confirm("Czy na pewno chcesz usunąć ten wydatek?")) {
-      state.expenses.splice(index, 1);
-      saveData();
-      // Check if we need to go back a page after deletion
-      const totalPages = Math.ceil(
-        filterExpenses().length / state.itemsPerPage
-      );
-      if (state.currentPage > totalPages && totalPages > 0) {
-        state.currentPage = totalPages;
-      }
-      renderAll();
-      showConfirmation(
-        "Wydatek został usunięty",
-        position.topRight,
-        false,
-        true
-      );
-    }
-  }
+                const index = deleteBtn.getAttribute("data-id");
+                if (confirm("Czy na pewno chcesz usunąć ten wydatek?")) {
+                    state.expenses.splice(index, 1);
+                    saveData();
+                    const totalPages = Math.ceil(
+                        filterExpenses().length / state.itemsPerPage
+                    );
+                    if (state.currentPage > totalPages && totalPages > 0) {
+                        state.currentPage = totalPages;
+                    }
+                    renderAll();
+                    showConfirmation(
+                        "Wydatek został usunięty",
+                        position.topRight,
+                        false,
+                        true
+                    );
+                }
+            }
 
-  // ==================== LIMIT WYDATKÓW ====================
-  function setMonthlyLimit() {
-    const newLimit = parseFloat(DOM.monthlyLimitInput.value);
+            function setMonthlyLimit() {
+                const newLimit = parseFloat(DOM.monthlyLimitInput.value);
 
-    if (newLimit > 0) {
-      state.monthlyLimit = newLimit;
-      saveData();
-      DOM.monthlyLimitInput.value = "";
-      updateBudgetProgress();
-      showConfirmation(
-        `Limit miesięczny ustawiony na ${newLimit} zł`,
-        position.topRight,
-        false,
-        true
-      );
-    } else {
-      showMessage(
-        DOM.expenseForm.querySelector(".form-message"),
-        "Wprowadź poprawną kwotę!",
-        "error"
-      );
-    }
-  }
+                if (newLimit > 0) {
+                    state.monthlyLimit = newLimit;
+                    saveData();
+                    DOM.monthlyLimitInput.value = "";
+                    updateBudgetProgress();
+                    showConfirmation(
+                        `Limit miesięczny ustawiony na ${newLimit} zł`,
+                        position.topRight,
+                        false,
+                        true
+                    );
+                } else {
+                    showMessage(
+                        DOM.expenseForm.querySelector(".form-message"),
+                        "Wprowadź poprawną kwotę!",
+                        "error"
+                    );
+                }
+            }
 
-  function updateBudgetProgress() {
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    const monthlyExpenses = state.expenses
-      .filter((exp) => exp.date.startsWith(currentMonth))
-      .reduce((sum, exp) => sum + exp.amount, 0);
+            function updateBudgetProgress() {
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                const monthlyExpenses = state.expenses
+                    .filter((exp) => exp.date.startsWith(currentMonth))
+                    .reduce((sum, exp) => sum + exp.amount, 0);
 
-    if (!state.monthlyLimit) {
-      DOM.budgetProgress.style.setProperty("--progress", "0%");
-      DOM.budgetText.textContent = "Nie ustawiono limitu";
-      DOM.limitWarning.style.display = "none";
-      return;
-    }
+                if (!state.monthlyLimit) {
+                    DOM.budgetProgress.style.setProperty("--progress", "0%");
+                    DOM.budgetText.textContent = "Nie ustawiono limitu";
+                    DOM.limitWarning.style.display = "none";
+                    return;
+                }
 
-    const percentage = Math.min(
-      (monthlyExpenses / state.monthlyLimit) * 100,
-      100
-    );
-    const remaining = state.monthlyLimit - monthlyExpenses;
+                const percentage = Math.min(
+                    (monthlyExpenses / state.monthlyLimit) * 100,
+                    100
+                );
+                const remaining = state.monthlyLimit - monthlyExpenses;
 
-    DOM.budgetProgress.style.setProperty("--progress", `${percentage}%`);
+                DOM.budgetProgress.style.setProperty("--progress", `${percentage}%`);
 
-    // Zmiana stylów w zależności od wykorzystania limitu
-    if (percentage >= 90) {
-      DOM.budgetProgress.classList.add("warning");
+                if (percentage >= 90) {
+                    DOM.budgetProgress.classList.add("warning");
 
-      if (percentage >= 100) {
-        DOM.limitWarning.textContent = `Przekroczono limit o ${Math.abs(
+                    if (percentage >= 100) {
+                        DOM.limitWarning.textContent = `Przekroczono limit o ${Math.abs(
           remaining
         ).toFixed(2)} zł!`;
-        DOM.limitWarning.style.display = "block";
-        if (percentage < 110) {
-          // Zapobiegaj spamowaniu powiadomień
-          showConfirmation(
-            "Przekroczono miesięczny limit budżetu!",
-            position.topRight,
-            true,
-            true
-          );
-        }
-      } else {
-        DOM.limitWarning.textContent = `Uwaga! Wykorzystano ${Math.round(
+                        DOM.limitWarning.style.display = "block";
+                        if (percentage < 110) {
+                            showConfirmation(
+                                "Przekroczono miesięczny limit budżetu!",
+                                position.topRight,
+                                true,
+                                true
+                            );
+                        }
+                    } else {
+                        DOM.limitWarning.textContent = `Uwaga! Wykorzystano ${Math.round(
           percentage
         )}% limitu`;
-        DOM.limitWarning.style.display = "block";
-        if (percentage >= 90 && percentage < 100) {
-          showConfirmation(
-            `Uwaga! Wykorzystano ${Math.round(percentage)}% limitu`,
-            position.topRight,
-            false,
-            true
-          );
-        }
-      }
-    } else {
-      DOM.budgetProgress.classList.remove("warning");
-      DOM.limitWarning.style.display = "none";
-    }
+                        DOM.limitWarning.style.display = "block";
+                        if (percentage >= 90 && percentage < 100) {
+                            showConfirmation(
+                                `Uwaga! Wykorzystano ${Math.round(percentage)}% limitu`,
+                                position.topRight,
+                                false,
+                                true
+                            );
+                        }
+                    }
+                } else {
+                    DOM.budgetProgress.classList.remove("warning");
+                    DOM.limitWarning.style.display = "none";
+                }
 
-    DOM.budgetText.textContent =
-      remaining >= 0
-        ? `Pozostało: ${remaining.toFixed(2)} zł`
-        : `Przekroczono o ${Math.abs(remaining).toFixed(2)} zł`;
-  }
+                DOM.budgetText.textContent =
+                    remaining >= 0 ?
+                    `Pozostało: ${remaining.toFixed(2)} zł` :
+                    `Przekroczono o ${Math.abs(remaining).toFixed(2)} zł`;
+            }
 
-  // ==================== NARZĘDZIA SAMOCHODOWE ====================
-  function handleFuelCalc(e) {
-    e.preventDefault();
-    const distance = parseFloat(document.getElementById("distance").value);
-    const fuelUsed = parseFloat(document.getElementById("fuel-used").value);
-    const fuelPrice =
-      parseFloat(document.getElementById("fuel-price").value) || 0;
+            function handleFuelCalc(e) {
+                e.preventDefault();
+                const distance = parseFloat(document.getElementById("distance").value);
+                const fuelUsed = parseFloat(document.getElementById("fuel-used").value);
+                const fuelPrice =
+                    parseFloat(document.getElementById("fuel-price").value) || 0;
 
-    if (distance <= 0 || fuelUsed <= 0) {
-      showMessage(
-        document.getElementById("fuel-form").querySelector(".form-message"),
-        "Wprowadź poprawne wartości!",
-        "error"
-      );
-      return;
-    }
+                if (distance <= 0 || fuelUsed <= 0) {
+                    showMessage(
+                        document.getElementById("fuel-form").querySelector(".form-message"),
+                        "Wprowadź poprawne wartości!",
+                        "error"
+                    );
+                    return;
+                }
 
-    const consumption = (fuelUsed / distance) * 100;
-    const costPerKm = (fuelUsed * fuelPrice) / distance;
+                const consumption = (fuelUsed / distance) * 100;
+                const costPerKm = (fuelUsed * fuelPrice) / distance;
 
-    document.getElementById("consumption").textContent = consumption.toFixed(2);
-    document.getElementById("cost-per-km").textContent = costPerKm.toFixed(3);
-  }
+                document.getElementById("consumption").textContent = consumption.toFixed(2);
+                document.getElementById("cost-per-km").textContent = costPerKm.toFixed(3);
+            }
 
-  function handleReminderSubmit(e) {
-    e.preventDefault();
-    const title = document.getElementById("reminder-title").value;
-    const date = document.getElementById("reminder-date").value;
-    const description = document
-      .getElementById("reminder-description")
-      .value.trim();
+            function handleReminderSubmit(e) {
+                e.preventDefault();
+                const title = document.getElementById("reminder-title").value;
+                const date = document.getElementById("reminder-date").value;
+                const description = document
+                    .getElementById("reminder-description")
+                    .value.trim();
 
-    if (!title || !date) {
-      showMessage(
-        document.getElementById("reminder-form").querySelector(".form-message"),
-        "Wypełnij wymagane pola!",
-        "error"
-      );
-      return;
-    }
+                if (!title || !date) {
+                    showMessage(
+                        document.getElementById("reminder-form").querySelector(".form-message"),
+                        "Wypełnij wymagane pola!",
+                        "error"
+                    );
+                    return;
+                }
 
-    state.reminders.push({ title, date, description });
-    saveData();
-    renderReminders();
-    showConfirmation("Dodano przypomnienie", position.topRight, false, true);
-    e.target.reset();
-  }
+                state.reminders.push({ title, date, description });
+                saveData();
+                renderReminders();
+                showConfirmation("Dodano przypomnienie", position.topRight, false, true);
+                e.target.reset();
+            }
 
-  function renderReminders() {
-    const list = document.getElementById("reminder-list");
-    list.innerHTML = "";
+            function renderReminders() {
+                const list = document.getElementById("reminder-list");
+                list.innerHTML = "";
 
-    // Sort reminders by date (earliest first)
-    state.reminders
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .forEach((reminder, index) => {
-        const li = document.createElement("li");
-        const reminderDate = new Date(reminder.date);
-        const today = new Date();
-        // Reset hours to compare just dates
-        today.setHours(0, 0, 0, 0);
-        reminderDate.setHours(0, 0, 0, 0);
+                state.reminders
+                    .sort((a, b) => new Date(a.date) - new Date(b.date))
+                    .forEach((reminder, index) => {
+                            const li = document.createElement("li");
+                            const reminderDate = new Date(reminder.date);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            reminderDate.setHours(0, 0, 0, 0);
 
-        // Calculate days difference
-        const timeDiff = reminderDate - today;
-        const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                            const timeDiff = reminderDate - today;
+                            const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
 
-        // Format the time left text
-        let timeLeftText;
-        if (daysLeft === 0) {
-          timeLeftText = "Dzisiaj";
-        } else if (daysLeft < 0) {
-          const yearsAgo = Math.floor(Math.abs(daysLeft) / 365);
-          const daysAgo = Math.abs(daysLeft) % 365;
-          if (yearsAgo > 0) {
-            timeLeftText = `${yearsAgo} ${
+                            let timeLeftText;
+                            if (daysLeft === 0) {
+                                timeLeftText = "Dzisiaj";
+                            } else if (daysLeft < 0) {
+                                const yearsAgo = Math.floor(Math.abs(daysLeft) / 365);
+                                const daysAgo = Math.abs(daysLeft) % 365;
+                                if (yearsAgo > 0) {
+                                    timeLeftText = `${yearsAgo} ${
               yearsAgo === 1 ? "rok" : yearsAgo < 5 ? "lata" : "lat"
             }`;
-            if (daysAgo > 0) {
-              timeLeftText += ` i ${daysAgo} ${
+                                    if (daysAgo > 0) {
+                                        timeLeftText += ` i ${daysAgo} ${
                 daysAgo === 1 ? "dzień" : "dni"
               } temu`;
-            } else {
-              timeLeftText += " temu";
-            }
-          } else {
-            timeLeftText = `${Math.abs(daysLeft)} ${
+                                    } else {
+                                        timeLeftText += " temu";
+                                    }
+                                } else {
+                                    timeLeftText = `${Math.abs(daysLeft)} ${
               Math.abs(daysLeft) === 1 ? "dzień" : "dni"
             } temu`;
-          }
-        } else {
-          const yearsLeft = Math.floor(daysLeft / 365);
-          const remainingDays = daysLeft % 365;
-          if (yearsLeft > 0) {
-            timeLeftText = `${yearsLeft} ${
+                                }
+                            } else {
+                                const yearsLeft = Math.floor(daysLeft / 365);
+                                const remainingDays = daysLeft % 365;
+                                if (yearsLeft > 0) {
+                                    timeLeftText = `${yearsLeft} ${
               yearsLeft === 1 ? "rok" : yearsLeft < 5 ? "lata" : "lat"
             }`;
-            if (remainingDays > 0) {
-              timeLeftText += ` i ${remainingDays} ${
+                                    if (remainingDays > 0) {
+                                        timeLeftText += ` i ${remainingDays} ${
                 remainingDays === 1 ? "dzień" : "dni"
               }`;
-            }
-          } else {
-            timeLeftText = `${daysLeft} ${daysLeft === 1 ? "dzień" : "dni"}`;
-          }
-        }
+                                    }
+                                } else {
+                                    timeLeftText = `${daysLeft} ${daysLeft === 1 ? "dzień" : "dni"}`;
+                                }
+                            }
 
-        // Set background color based on urgency
-        if (daysLeft >= 0) {
-          // Only for future and today's reminders
-          if (daysLeft <= 1) {
-            // 24 hours or less
-            li.style.backgroundColor = "rgba(231, 76, 60, 0.2)"; // Light red
-          } else if (daysLeft <= 7) {
-            // 7 days or less
-            li.style.backgroundColor = "rgba(241, 196, 15, 0.2)"; // Light yellow
-          }
-        }
+                            if (daysLeft >= 0) {
+                                if (daysLeft <= 1) {
+                                    li.style.backgroundColor = "rgba(231, 76, 60, 0.2)";
+                                } else if (daysLeft <= 7) {
+                                    li.style.backgroundColor = "rgba(241, 196, 15, 0.2)";
+                                }
+                            }
 
-        li.className = "reminder-item";
-        li.innerHTML = `
-                      <div class="reminder-info">
-                         <span class="reminder-title bold">${
-                           reminder.title
-                         }</span>
-                          - 
-                         <span class="reminder-date italic">${formatDate(
-                           reminder.date
-                         )}</span>
-                          ${
-                            reminder.description
-                              ? `<p class="reminder-description">${reminder.description}</p>`
-                              : ""
-                          }
-                      </div>
-                     <div class="reminder-time-left">
-                         <span class="reminder-time-left-value">${timeLeftText}</span>
-                     </div>
-                      <button class="delete-btn" data-reminder-id="${index}" aria-label="Usuń przypomnienie">
-                          <i class="fas fa-trash-alt"></i>
-                      </button>
-                `;
+                            li.className = "reminder-item";
+                            li.innerHTML = `
+          <div class="reminder-info">
+             <span class="reminder-title bold">${
+               reminder.title
+             }</span>
+              - 
+             <span class="reminder-date italic">${formatDate(
+               reminder.date
+             )}</span>
+              ${
+                reminder.description
+                  ? `<p class="reminder-description">${reminder.description}</p>`
+                  : ""
+              }
+          </div>
+         <div class="reminder-time-left">
+             <span class="reminder-time-left-value">${timeLeftText}</span>
+         </div>
+          <button class="delete-btn" data-reminder-id="${index}" aria-label="Usuń przypomnienie">
+              <i class="fas fa-trash-alt"></i>
+          </button>
+        `;
         list.appendChild(li);
       });
   }
@@ -572,7 +526,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ==================== WYKRESY ====================
   function renderCharts() {
     const totals = {};
     state.expenses.forEach((exp) => {
@@ -688,16 +641,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ==================== FUNKCJE POMOCNICZE ====================
-  function renderAll() {
-    const filteredExpenses = filterExpenses();
-    renderExpenses();
-    renderCharts();
-    updateBudgetProgress();
-    updateCounter(filteredExpenses);
-    fillSummariesData();
-  }
-
   function updateCounter(filteredExpenses) {
     DOM.expenseCounter.textContent = `Wyświetlono ${
       (state.currentPage - 1) * state.itemsPerPage + 1
@@ -713,7 +656,7 @@ document.addEventListener("DOMContentLoaded", () => {
     DOM.filterCategory.value = "";
     DOM.filterMonth.value = "";
     DOM.filterSearch.value = "";
-    state.currentPage = 1; // Reset to first page when filters are cleared
+    state.currentPage = 1;
     renderAll();
   }
 
@@ -753,9 +696,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const headers = ["Data", "Kategoria", "Typ", "Kwota"];
 
-    // Get current date
     const currentDate = new Date();
-    // Get target date by subtracting months
     let targetMonth = currentDate.getMonth() - month;
     let targetYear = currentDate.getFullYear();
 
@@ -815,7 +756,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Remove expired reminders (from yesterday or earlier)
     state.reminders = state.reminders.filter((reminder) => {
       const reminderDate = new Date(reminder.date);
       const reminderDay = new Date(
@@ -826,7 +766,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return reminderDay.getTime() >= today.getTime();
     });
 
-    // Check for today's reminders
     const todayReminders = state.reminders.filter((reminder) => {
       const reminderDate = new Date(reminder.date);
       const reminderDay = new Date(
@@ -837,7 +776,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return reminderDay.getTime() === today.getTime();
     });
 
-    // Show notifications for today's reminders
     todayReminders.forEach((reminder) => {
       showConfirmation(
         `Dzisiaj masz zaplanowane: ${reminder.title}!`,
@@ -847,7 +785,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
 
-    // Save changes and update display
     saveData();
     renderReminders();
   }
@@ -855,36 +792,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function formatDate(dateString) {
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("pl-PL", options);
-  }
-
-  function saveData() {
-    const dataToSave = {
-      expenses: state.expenses,
-      reminders: state.reminders,
-      monthlyLimit: state.monthlyLimit,
-    };
-
-    console.log(dataToSave);
-
-    // Convert data to URL-safe string
-    const encodedData = encodeURIComponent(JSON.stringify(dataToSave));
-
-    // Send data to server using GET request
-    fetch(`save-data?data=${encodedData}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .catch((error) => {
-        console.error("Error saving data:", error);
-        showMessage(
-          document.querySelector(".form-message"),
-          "Error saving data.",
-          "error"
-        );
-      });
   }
 
   function showMessage(element, message, type) {
@@ -929,13 +836,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const content = header.nextElementSibling;
         const isActive = header.classList.contains("active");
 
-        // Close all other accordion items
         headers.forEach((h) => {
           h.classList.remove("active");
           h.nextElementSibling.classList.remove("active");
         });
 
-        // Toggle current item
         if (!isActive) {
           header.classList.add("active");
           content.classList.add("active");
