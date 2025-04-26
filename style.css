@@ -22,7 +22,7 @@
     /* Dark Theme Colors */
     --primary-color: #2980b9;
     --primary-hover: #3498db;
-    --success-color: #16a085;
+    --success-color: #16a086;
     --warning-color: #d35400;
     --danger-color: #e74c3c;
     --text-color: #f0f0f0;
@@ -35,7 +35,7 @@
     --progress-bg: linear-gradient(90deg, #16a085, #1abc9c);
     --input-bg: #3a3a3a;
     --card-bg: #333333;
-    --hover-bg: #2c3e50;
+    --hover-bg: #2c4e51;
 }
 
 
