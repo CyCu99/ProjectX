@@ -329,6 +329,21 @@ button {
 }
 
 
+/* Styl dla napisu "Nie ustawiono limitu" w jasnym motywie */
+
+:root[data-theme="light"] #budget-text {
+    color: #333;
+    /* Kolor czarny, spójny z resztą tekstu */
+}
+
+
+/* Logo dla jasnego motywu */
+
+:root[data-theme="light"] #logo {
+    content: url("assets/logo.png");
+}
+
+
 /* Dark theme styles */
 
 :root[data-theme="dark"] .theme-btn {
@@ -342,6 +357,13 @@ button {
 
 :root[data-theme="dark"] .theme-option.light {
     color: var(--text-light);
+}
+
+
+/* Logo dla ciemnego motywu */
+
+:root[data-theme="dark"] #logo {
+    content: url("assets/logo2.png");
 }
 
 
