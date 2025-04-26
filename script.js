@@ -871,32 +871,45 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       body: JSON.stringify(dataToSave),
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Błąd podczas zapisywania danych na serwerze');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log('Dane zapisane na serwerze:', data);
-      })
-      .catch((error) => {
-        console.error('Błąd zapisu danych:', error);
-        showMessage(
-          document.querySelector('.form-message'),
-          'Nie udało się zapisać danych na serwerze.',
-          'error'
-        );
-      });
+    .catch((error) => {
+      console.error('Błąd sieci:', error);
+      showMessage(
+        document.querySelector('.form-message'),
+        'Nie udało się połączyć z serwerem.',
+        'error'
+      );
+    });
   }
 
   function saveData() {
-    localStorage.setItem('expenses', JSON.stringify(state.expenses));
-    localStorage.setItem('reminders', JSON.stringify(state.reminders));
-    localStorage.setItem('monthlyLimit', JSON.stringify(state.monthlyLimit));
+    try {
+      localStorage.setItem('expenses', JSON.stringify(state.expenses));
+      localStorage.setItem('reminders', JSON.stringify(state.reminders));
+      localStorage.setItem('monthlyLimit', JSON.stringify(state.monthlyLimit));
+    } catch (error) {
+      console.error('Błąd zapisu do localStorage:', error);
+    }
 
     // Wywołaj zapis na serwerze
-    saveDataToServer();
+    fetch('http://localhost:8000/save-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        expenses: state.expenses,
+        reminders: state.reminders,
+        monthlyLimit: state.monthlyLimit,
+      }),
+    })
+    .catch((error) => {
+      console.error('Błąd sieci:', error);
+      showMessage(
+        document.querySelector('.form-message'),
+        'Nie udało się połączyć z serwerem.',
+        'error'
+      );
+    });
   }
 
   function showMessage(element, message, type) {
