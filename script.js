@@ -864,7 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
       monthlyLimit: state.monthlyLimit,
     };
 
-    fetch('/save-data', {
+    fetch('http://localhost:8000/save-data', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
