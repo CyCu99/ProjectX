@@ -337,6 +337,13 @@ button {
 }
 
 
+/* Logo dla jasnego motywu */
+
+:root[data-theme="light"] #logo {
+    content: url("assets/logo.png");
+}
+
+
 /* Dark theme styles */
 
 :root[data-theme="dark"] .theme-btn {
@@ -350,6 +357,13 @@ button {
 
 :root[data-theme="dark"] .theme-option.light {
     color: var(--text-light);
+}
+
+
+/* Logo dla ciemnego motywu */
+
+:root[data-theme="dark"] #logo {
+    content: url("assets/logo2.png");
 }
 
 
