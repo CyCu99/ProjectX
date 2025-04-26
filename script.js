@@ -65,56 +65,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
             async function loadJSONData() {
                 try {
-                    const response = await fetch("data.json");
+                    const response = await fetch('http://localhost:8000/get-data');
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     const json = await response.json();
 
-                    // Load expenses
-                    if (json.expenses) {
-                        json.expenses.forEach((item) => {
-                            if (!item.category || !item.type || !item.amount || !item.date) {
-                                throw new Error("Invalid expense data structure");
-                            }
+                    // Załaduj dane do stanu aplikacji
+                    state.expenses = json.expenses || [];
+                    state.reminders = json.reminders || [];
+                    state.monthlyLimit = json.monthlyLimit || null;
 
-                            state.expenses.push({
-                                category: item.category,
-                                type: item.type,
-                                amount: parseFloat(item.amount),
-                                date: item.date,
-                            });
-                        });
-                    }
-
-                    // Load reminders
-                    if (json.reminders) {
-                        state.reminders = json.reminders
-                            .map((reminder) => ({
-                                title: reminder.title,
-                                date: reminder.date,
-                                description: reminder.description || "",
-                            }))
-                            .sort((a, b) => new Date(a.date) - new Date(b.date));
-                    }
-
-                    // Load monthly limit
-                    if (json.monthlyLimit) {
-                        state.monthlyLimit = parseFloat(json.monthlyLimit);
-                    }
-
-                    saveData();
                     renderAll();
                     renderReminders();
-                    console.log("Successfully loaded JSON data");
+                    console.log("Dane załadowane z serwera.");
                 } catch (error) {
-                    console.error("Error loading JSON data:", error);
-                    showMessage(
-                        document.querySelector(".form-message"),
-                        `Error loading data: ${error.message}`,
-                        "error"
-                    );
+                    console.error("Błąd podczas ładowania danych:", error);
                 }
+            }
+
+            function saveDataToServer() {
+                const dataToSave = {
+                    expenses: state.expenses,
+                    reminders: state.reminders,
+                    monthlyLimit: state.monthlyLimit,
+                };
+
+                fetch('http://localhost:8000/save-data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(dataToSave),
+                    })
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error('Błąd podczas zapisywania danych na serwerze');
+                        }
+                        console.log('Dane zapisane na serwerze.');
+                    })
+                    .catch((error) => {
+                        console.error('Błąd zapisu danych:', error);
+                    });
+            }
+
+            function saveData() {
+                saveDataToServer();
             }
 
             function setupEventListeners() {
@@ -854,62 +850,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function formatDate(dateString) {
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("pl-PL", options);
-  }
-
-  // Funkcja do zapisywania danych na serwerze
-  function saveDataToServer() {
-    const dataToSave = {
-      expenses: state.expenses,
-      reminders: state.reminders,
-      monthlyLimit: state.monthlyLimit,
-    };
-
-    fetch('http://localhost:8000/save-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(dataToSave),
-    })
-    .catch((error) => {
-      console.error('Błąd sieci:', error);
-      showMessage(
-        document.querySelector('.form-message'),
-        'Nie udało się połączyć z serwerem.',
-        'error'
-      );
-    });
-  }
-
-  function saveData() {
-    try {
-      localStorage.setItem('expenses', JSON.stringify(state.expenses));
-      localStorage.setItem('reminders', JSON.stringify(state.reminders));
-      localStorage.setItem('monthlyLimit', JSON.stringify(state.monthlyLimit));
-    } catch (error) {
-      console.error('Błąd zapisu do localStorage:', error);
-    }
-
-    // Wywołaj zapis na serwerze
-    fetch('http://localhost:8000/save-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        expenses: state.expenses,
-        reminders: state.reminders,
-        monthlyLimit: state.monthlyLimit,
-      }),
-    })
-    .catch((error) => {
-      console.error('Błąd sieci:', error);
-      showMessage(
-        document.querySelector('.form-message'),
-        'Nie udało się połączyć z serwerem.',
-        'error'
-      );
-    });
   }
 
   function showMessage(element, message, type) {
