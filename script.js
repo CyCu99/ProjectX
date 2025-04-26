@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 export9: document.getElementById("export-9"),
                 export10: document.getElementById("export-10"),
                 export11: document.getElementById("export-11"),
+                resetButton: document.getElementById("reset-button"),
             };
 
             const position = {
@@ -135,14 +136,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
 
-                const resetButton = document.getElementById("reset-button");
-                if (resetButton) {
-                    resetButton.addEventListener("click", () => {
-                        const confirmation = confirm("Czy na pewno chcesz zresetować wszystkie dane?");
+                if (DOM.resetButton) {
+                    DOM.resetButton.addEventListener("click", () => {
+                        const confirmation = confirm("Czy na pewno chcesz zresetować wszystkie dane (oprócz motywu)?");
                         if (confirmation) {
+                            const currentTheme = localStorage.getItem("theme");
                             localStorage.clear();
-                            alert("Dane zostały zresetowane!");
-                            location.reload(); // Odśwież stronę, aby zastosować zmiany
+                            if (currentTheme) {
+                                localStorage.setItem("theme", currentTheme);
+                            }
+                            alert("Dane zostały zresetowane (motyw został zachowany)!");
+                            location.reload();
                         }
                     });
                 }
