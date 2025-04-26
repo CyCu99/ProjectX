@@ -329,6 +329,14 @@ button {
 }
 
 
+/* Styl dla napisu "Nie ustawiono limitu" w jasnym motywie */
+
+:root[data-theme="light"] #budget-text {
+    color: #333;
+    /* Kolor czarny, spójny z resztą tekstu */
+}
+
+
 /* Dark theme styles */
 
 :root[data-theme="dark"] .theme-btn {
