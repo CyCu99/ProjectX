@@ -251,6 +251,7 @@ button {
 
 .reset-btn {
     background-color: #e74c3c;
+    /* Czerwony kolor */
     color: white;
     border: none;
     padding: 10px 15px;
@@ -264,6 +265,7 @@ button {
 
 .reset-btn:hover {
     background-color: #c0392b;
+    /* Ciemniejszy czerwony na hover */
 }
 
 .reset-btn i {

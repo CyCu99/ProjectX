@@ -136,14 +136,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 const resetButton = document.getElementById("reset-button");
-                resetButton.addEventListener("click", () => {
-                    const confirmation = confirm("Czy na pewno chcesz zresetować wszystkie dane?");
-                    if (confirmation) {
-                        localStorage.clear();
-                        alert("Dane zostały zresetowane!");
-                        location.reload(); // Odśwież stronę, aby zastosować zmiany
-                    }
-                });
+                if (resetButton) {
+                    resetButton.addEventListener("click", () => {
+                        const confirmation = confirm("Czy na pewno chcesz zresetować wszystkie dane?");
+                        if (confirmation) {
+                            localStorage.clear();
+                            alert("Dane zostały zresetowane!");
+                            location.reload(); // Odśwież stronę, aby zastosować zmiany
+                        }
+                    });
+                }
             }
 
             function toggleTheme() {
